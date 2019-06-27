@@ -9,7 +9,7 @@
 #include <iostream>
 
 using namespace wm_kinova_hardware_interface;
-using namespace wm_admittance;
+//using namespace wm_admittance;
 
 
 // << ---- S T A T I C   V A R I A B L E   I N I T I A L I Z A T I O N ---- >>
@@ -34,7 +34,7 @@ AngularPosition WMKinovaHardwareInterface::PositionList;
 ros::Publisher WMKinovaHardwareInterface::StatusPublisher;
 KinovaDevice WMKinovaHardwareInterface::devices[MAX_KINOVA_DEVICE];
 
-WMAdmittance* WMKinovaHardwareInterface::aAdmittance;
+//WMAdmittance* WMKinovaHardwareInterface::aAdmittance;
 
 bool WMKinovaHardwareInterface::StatusMonitorOn = true;
 bool WMKinovaHardwareInterface::Simulation = false;
@@ -121,7 +121,7 @@ bool WMKinovaHardwareInterface::init(ros::NodeHandle &root_nh, ros::NodeHandle &
         SpeedRatio = 1;
     }
 
-    aAdmittance = wm_admittance::WMAdmittance::getInstance();
+//    aAdmittance = wm_admittance::WMAdmittance::getInstance();
 
     cmd = 0;
     pos = 0;
@@ -180,11 +180,12 @@ void WMKinovaHardwareInterface::read(const ros::Time &time, const ros::Duration 
 
 void WMKinovaHardwareInterface::write(const ros::Time &time, const ros::Duration &period)
 {
-    double cmdVel{cmd*9.549296586}; // rad/s to RPM
-    if (aAdmittance->isAdmittanceEnabled()) {
-        cmdVel += aAdmittance->getAdmittanceVelocityFromJoint(aIndexByJointNameMap[Index]);
-    }
-    else {
+    double cmdVel;
+//    if (aAdmittance->isAdmittanceEnabled()) {
+//        cmdVel = aAdmittance->getAdmittanceVelocityFromJoint(aIndexByJointNameMap[Index]) + cmd * 57.295779513;
+//    }
+//    else {
+        cmdVel = cmd * 57.295779513;
         seff += (eff-seff)*ComplienceLossFactor;
         deff += (seff-deff)*ComplienceDerivationFactor;
 
@@ -194,7 +195,7 @@ void WMKinovaHardwareInterface::write(const ros::Time &time, const ros::Duration
         else {
             deff += (seff-deff)*ComplienceResistance;
         }
-    }
+//    }
 
     SetVel(Index, cmdVel*SpeedRatio); // from r/s to ded/p
 

@@ -24,7 +24,7 @@
 
 #include "WMKinovaApiWrapper.h"
 
-#include "WMAdmittance/WMAdmittance.h"
+//#include "WMAdmittance/WMAdmittance.h"
 
 #include <thread>
 #include <mutex>
@@ -115,7 +115,7 @@ namespace wm_kinova_hardware_interface
 
         static KinovaDevice devices[MAX_KINOVA_DEVICE];
 
-        static wm_admittance::WMAdmittance* aAdmittance;
+//        static wm_admittance::WMAdmittance* aAdmittance;
     };
 
     inline double Mod( double A, double N ) {
