@@ -198,15 +198,15 @@ void WMKinovaHardwareInterface::write(const ros::Time &time, const ros::Duration
 //    }
 //    else {
         cmdVel = cmd * 57.295779513;
-        seff += (eff-seff)*ComplienceLossFactor;
-        deff += (seff-deff)*ComplienceDerivationFactor;
+        // seff += (eff-seff)*ComplienceLossFactor;
+        // deff += (seff-deff)*ComplienceDerivationFactor;
 
-        if ((seff-deff)*(seff-deff)>ComplienceThreshold) {
-            cmdVel += (-2*seff+deff)*ComplienceLevel*SpeedRatio;
-        }
-        else {
-            deff += (seff-deff)*ComplienceResistance;
-        }
+        // if ((seff-deff)*(seff-deff)>ComplienceThreshold) {
+        //     cmdVel += (-2*seff+deff)*ComplienceLevel*SpeedRatio;
+        // }
+        // else {
+        //     deff += (seff-deff)*ComplienceResistance;
+        // }
 //    }
 
     SetVel(Index, cmdVel*SpeedRatio); // from r/s to ded/p
