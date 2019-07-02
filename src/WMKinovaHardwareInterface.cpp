@@ -25,6 +25,8 @@ double WMKinovaHardwareInterface::Vel[6]{0};
 double WMKinovaHardwareInterface::Eff[6]{0};
 double WMKinovaHardwareInterface::Cmd[6]{0};
 double WMKinovaHardwareInterface::Offset[6];
+double WMKinovaHardwareInterface::MaximumLimit[6];
+double WMKinovaHardwareInterface::MinimumLimit[6];
 double WMKinovaHardwareInterface::Temperature[6]{0};
 hardware_interface::VelocityJointInterface WMKinovaHardwareInterface::joint_velocity_interface_;
 hardware_interface::JointStateInterface    WMKinovaHardwareInterface::joint_state_interface_;
@@ -100,6 +102,14 @@ bool WMKinovaHardwareInterface::init(ros::NodeHandle &root_nh, ros::NodeHandle &
         return false;
     }
 
+    // Add joint limits from the .YAML
+    if (!robot_hw_nh.getParam("max_limit", MaximumLimit[Index])){
+        MaximumLimit[Index] = 180;
+    }
+    if (!robot_hw_nh.getParam("min_limit", MinimumLimit[Index])){
+        MinimumLimit[Index] = -180;
+    }
+
     aIndexByJointNameMap.emplace(Index, Name);
 
     if (!robot_hw_nh.getParam("complience_level", ComplienceLevel)){
@@ -121,6 +131,7 @@ bool WMKinovaHardwareInterface::init(ros::NodeHandle &root_nh, ros::NodeHandle &
         SpeedRatio = 1;
     }
 
+
 //    aAdmittance = wm_admittance::WMAdmittance::getInstance();
 
     cmd = 0;
@@ -136,6 +147,7 @@ bool WMKinovaHardwareInterface::init(ros::NodeHandle &root_nh, ros::NodeHandle &
 
     //TemperaturePublisher = nh.advertise<diagnostic_msgs::DiagnosticArray>("diagnostics", 100);
 
+    ros::Duration(0.1).sleep(); // sleep for half a second
     treadMutex.lock();
     seff = Eff[Index];
     treadMutex.unlock();
@@ -150,7 +162,7 @@ void WMKinovaHardwareInterface::read(const ros::Time &time, const ros::Duration 
     diagnostic_msgs::DiagnosticArray dia_array;
 
     treadMutex.lock();
-    pos = AngleProxy( 0, Pos[Index]);
+    pos = AngleProxy( 0, Pos[Index]*SpeedRatio);
     eff = Eff[Index];
     vel = Vel[Index];
     treadMutex.unlock();
@@ -190,7 +202,7 @@ void WMKinovaHardwareInterface::write(const ros::Time &time, const ros::Duration
         deff += (seff-deff)*ComplienceDerivationFactor;
 
         if ((seff-deff)*(seff-deff)>ComplienceThreshold) {
-            cmdVel += (-2*seff+deff)*ComplienceLevel;
+            cmdVel += (-2*seff+deff)*ComplienceLevel*SpeedRatio;
         }
         else {
             deff += (seff-deff)*ComplienceResistance;
@@ -387,6 +399,15 @@ bool WMKinovaHardwareInterface::SendPoint() {
             // Apply hardcoded speed limits
             Cmd[i] = Cmd[i] < 40 ? Cmd[i] : 40;
             Cmd[i] = Cmd[i] > -40 ? Cmd[i] : -40;
+
+            // Check if moving towards exterior of limits
+            if (Pos[i] < MinimumLimit[i]/180 * M_PI && Cmd[i] < 0) { 
+                Cmd[i] = 0;
+            }
+            if (Pos[i] > MaximumLimit[i]/180 * M_PI && Cmd[i] > 0) { 
+                Cmd[i] = 0;
+            }
+
             Vel[i] = Cmd[i];
         }
         treadMutex.unlock();

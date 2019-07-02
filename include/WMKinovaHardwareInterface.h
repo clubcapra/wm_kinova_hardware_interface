@@ -59,6 +59,8 @@ namespace wm_kinova_hardware_interface
         double ComplienceDerivationFactor;
         double ComplienceResistance;
 
+        static double MaximumLimit[6];
+        static double MinimumLimit[6];
 
         static double Cmd[6];
         static double Pos[6];
