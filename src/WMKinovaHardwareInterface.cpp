@@ -407,7 +407,7 @@ bool WMKinovaHardwareInterface::SendPoint() {
             if (Pos[i] > MaximumLimit[i]/180 * M_PI && Cmd[i] > 0) { 
                 Cmd[i] = 0;
             }
-
+           // std::cout << "\nIndex = " << i << ", Position = " << Pos[i]*180 / M_PI;
             Vel[i] = Cmd[i];
         }
         treadMutex.unlock();
